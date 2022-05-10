@@ -1,0 +1,15 @@
+mrn = "urn:mrn:" oid ":" oss [rq-components] [ "#" f-component ]
+oid = (alphanum) 0*20((alphanum) / "-") (alphanum)
+oss = osnid ":" osns
+osnid = (alphanum) 0*20((alphanum) / "-") (alphanum)
+osns = pchar *(pchar / "/")
+rq-components = [ "?+" r-component ] [ "?=" q-component ]
+r-component = pchar *( pchar / "/" / "?" )
+q-component = pchar *( pchar / "/" / "?" )
+f-component   = fragment
+fragment = *( pchar / "/" / "?" )
+alphanum = ALPHA / DIGIT
+pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
+unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+pct-encoded = "%" HEXDIG HEXDIG
+sub-delims = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="

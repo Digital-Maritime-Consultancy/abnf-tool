@@ -1,0 +1,9 @@
+abnf==1.2.0
+abnf-to-regexp @ git+https://github.com/Digital-Maritime-Consultancy/abnf-to-regexp.git@1417d53c8c8226f73d449a01821125ae6088dd9f
+asttokens==2.0.5
+greenery==3.3.6
+icontract==2.6.1
+regex==2021.4.4
+six==1.16.0
+sortedcontainers==2.4.0
+typing_extensions==4.2.0
