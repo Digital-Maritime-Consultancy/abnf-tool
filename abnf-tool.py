@@ -1,10 +1,12 @@
 import pickle
 import re
+from multiprocessing import Process
 
 from abnf import Rule
 from abnf.grammars.misc import load_grammar_rules
 from abnf_to_regexp.single_regexp import translate, represent
-from greenery import lego
+from greenery import lego, fsm
+from redis import Redis
 
 urn_abnf_path = "urn-abnf.txt"
 
@@ -53,20 +55,49 @@ print(mrn_re_str)
 #
 # start = time.time()
 
-urn_fsm = parse_regex(urn_re_str)
-mrn_fsm = parse_regex(mrn_re_str)
+urn_lego: lego.lego = parse_regex(urn_re_str)
+mrn_lego: lego.lego = parse_regex(mrn_re_str)
+
 # end = time.time()
 
 # duration = end - start
 # print(f"Parsing took {duration:.2f} seconds")
 
 with open('urn_lego.bin', 'wb') as f:
-    pickle.dump(urn_fsm, f, protocol=pickle.HIGHEST_PROTOCOL)
+    pickle.dump(urn_lego, f)
 
 with open('mrn_lego.bin', 'wb') as f:
-    pickle.dump(mrn_fsm, f, protocol=pickle.HIGHEST_PROTOCOL)
+    pickle.dump(mrn_lego, f)
 
-#
+
+r = Redis()
+
+
+def convert_and_save(lego_piece: lego.lego, path: str, name: str):
+    print(f"Starting creation of {path}")
+    _fsm: fsm.fsm = lego_piece.to_fsm().reduce()
+    with open(path, 'wb') as file:
+        pickle.dump(_fsm, file)
+        print(f"Finished {path}")
+    p = pickle.dumps(_fsm)
+    r.set(name, p)
+
+    # with open(path, 'rb') as file:
+    #     fsm_loaded = pickle.load(file)
+    # if _fsm == fsm_loaded:
+    #     print("FSM is the same after pickling", path)
+    # else:
+    #     print("FSM is NOT the same after pickling", path)
+
+
+# convert_and_save(urn_lego, 'urn_fsm.bin')
+p1 = Process(target=convert_and_save, args=(urn_lego, 'urn_fsm.bin', 'urn',))
+p2 = Process(target=convert_and_save, args=(mrn_lego, 'mrn_fsm.bin', 'urn:mrn',))
+p1.start()
+p2.start()
+p1.join()
+p2.join()
+
 # if urn_fsm.ispropersuperset(mrn_fsm):
 #     print("MRN is a subset of URN")
 
