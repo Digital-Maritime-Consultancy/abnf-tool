@@ -23,7 +23,7 @@ class Urn(Rule):
 
 
 regex = translate(Urn('namestring'))
-urn_re_str = represent(regex).replace('\#', '#').replace('{,', '{0,')
+urn_re_str = represent(regex).replace('\#', '#')
 print(urn_re_str)
 urn_re = re.compile(urn_re_str)
 
@@ -49,7 +49,7 @@ class Mrn(Rule):
 #     print(f"{rule.name} = {rule.definition}")
 
 regex = translate(Mrn('mrn'))
-mrn_re_str = represent(regex).replace('\#', '#').replace('{,', '{0,')
+mrn_re_str = represent(regex).replace('\#', '#')
 print(mrn_re_str)
 # mrn_re = re.compile(mrn_re_str)
 #
@@ -73,16 +73,22 @@ with open('mrn_lego.bin', 'wb') as f:
 r = Redis()
 
 
-def convert_and_save(lego_piece: lego.lego, path: str, name: str):
+def convert_and_save(lego_piece: lego.lego, path: str, name: str, regexp: str):
     print(f"Starting creation of {path}")
     _fsm: fsm.fsm = lego_piece.to_fsm().reduce()
     with open(path, 'wb') as file:
         pickle.dump(_fsm, file)
-        print(f"Finished {path}")
-    p = pickle.dumps(_fsm)
+    t = {
+        "namespace": name,
+        "regex": regexp,
+        "fsm": _fsm
+    }
+    p = pickle.dumps(t)
     r.set(name, p)
+    print(f"Finished {name}")
 
-    # with open(path, 'rb') as file:
+
+# with open(path, 'rb') as file:
     #     fsm_loaded = pickle.load(file)
     # if _fsm == fsm_loaded:
     #     print("FSM is the same after pickling", path)
@@ -90,8 +96,8 @@ def convert_and_save(lego_piece: lego.lego, path: str, name: str):
     #     print("FSM is NOT the same after pickling", path)
 
 
-convert_and_save(urn_lego, 'urn_fsm.bin', 'urn')
-convert_and_save(mrn_lego, 'mrn_fsm.bin', 'urn:mrn')
+convert_and_save(urn_lego, 'urn_fsm.bin', 'urn', urn_re_str)
+convert_and_save(mrn_lego, 'mrn_fsm.bin', 'urn:mrn', mrn_re_str)
 # p1 = Process(target=convert_and_save, args=(urn_lego, 'urn_fsm.bin', 'urn',))
 # p2 = Process(target=convert_and_save, args=(mrn_lego, 'mrn_fsm.bin', 'urn:mrn',))
 # p1.start()
