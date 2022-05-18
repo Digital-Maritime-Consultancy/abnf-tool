@@ -1,4 +1,5 @@
 import pickle
+import tempfile
 
 from greenery import fsm, lego
 
@@ -11,21 +12,23 @@ l2: lego.lego = lego.parse(r2)
 f1: fsm.fsm = l1.to_fsm()
 f2: fsm.fsm = l2.to_fsm()
 
+tempdir = tempfile.gettempdir()
+
 if f2 < f1:
     print("r2 is a proper subset of r1")
 else:
     print("r2 is NOT is proper subset of r1")
 
-with open("/tmp/f1.bin", "wb") as f:
+with open(f"{tempdir}/f1.bin", "wb") as f:
     pickle.dump(f1, f)
 
-with open("/tmp/f2.bin", "wb") as f:
+with open(f"{tempdir}/f2.bin", "wb") as f:
     pickle.dump(f2, f)
 
-with open("/tmp/f1.bin", "rb") as f:
+with open(f"{tempdir}/f1.bin", "rb") as f:
     f1_unpickled: fsm.fsm = pickle.load(f)
 
-with open("/tmp/f2.bin", "rb") as f:
+with open(f"{tempdir}/f2.bin", "rb") as f:
     f2_unpickled: fsm.fsm = pickle.load(f)
 
 if f2_unpickled < f1_unpickled:

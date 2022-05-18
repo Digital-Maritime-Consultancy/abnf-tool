@@ -90,13 +90,14 @@ def convert_and_save(lego_piece: lego.lego, path: str, name: str):
     #     print("FSM is NOT the same after pickling", path)
 
 
-# convert_and_save(urn_lego, 'urn_fsm.bin')
-p1 = Process(target=convert_and_save, args=(urn_lego, 'urn_fsm.bin', 'urn',))
-p2 = Process(target=convert_and_save, args=(mrn_lego, 'mrn_fsm.bin', 'urn:mrn',))
-p1.start()
-p2.start()
-p1.join()
-p2.join()
+convert_and_save(urn_lego, 'urn_fsm.bin', 'urn')
+convert_and_save(mrn_lego, 'mrn_fsm.bin', 'urn:mrn')
+# p1 = Process(target=convert_and_save, args=(urn_lego, 'urn_fsm.bin', 'urn',))
+# p2 = Process(target=convert_and_save, args=(mrn_lego, 'mrn_fsm.bin', 'urn:mrn',))
+# p1.start()
+# p2.start()
+# p1.join()
+# p2.join()
 
 # if urn_fsm.ispropersuperset(mrn_fsm):
 #     print("MRN is a subset of URN")
