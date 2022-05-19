@@ -74,7 +74,7 @@ r = Redis()
 
 
 def convert_and_save(lego_piece: lego.lego, path: str, name: str, regexp: str):
-    print(f"Starting creation of {path}")
+    print(f"Starting creation of {name}")
     _fsm: fsm.fsm = lego_piece.to_fsm().reduce()
     with open(path, 'wb') as file:
         pickle.dump(_fsm, file)
