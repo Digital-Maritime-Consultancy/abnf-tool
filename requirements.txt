@@ -1,9 +1,9 @@
 abnf==1.2.0
-abnf-to-regexp @ git+https://github.com/aas-core-works/abnf-to-regexp.git@79053b6708dea3656c490d2ef1f387dc59d72860
+abnf-to-regexp==1.1.0
 asttokens==2.0.5
 async-timeout==4.0.2
 Deprecated==1.2.13
-greenery==3.3.6
+greenery==3.3.7
 icontract==2.6.1
 packaging==21.3
 pyparsing==3.0.9
