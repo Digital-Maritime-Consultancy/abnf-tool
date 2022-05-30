@@ -13,8 +13,11 @@ from greenery import fsm, lego
 from redis import Redis
 from websockets import exceptions
 
+from neo4jclient import Neo4JClient
+
 log = logging.getLogger("ABNF Server")
 r = Redis()
+n4j = Neo4JClient()
 
 
 async def handler(websocket):
@@ -89,6 +92,7 @@ def create_regex_from_abnf(abnf_syntax: str, namespace: str, extends_namespace: 
     }
     p = pickle.dumps(new_dict)
     r.set(namespace, p)
+    n4j.create_syntax(abnf_syntax, new_regex_str, namespace)
     return new_regex_str
 
 
@@ -100,4 +104,10 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        log.info("Shutting down server")
+    finally:
+        r.close()
+        n4j.close()
