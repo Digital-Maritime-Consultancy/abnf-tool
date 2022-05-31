@@ -28,11 +28,15 @@ class Neo4JClient:
 
     def create_syntax(self, syntax, regex, ns):
         with self.driver.session() as session:
+            namespace = session.read_transaction(self._find_and_return_namespace, ns)
+            if not namespace:
+                self.create_namespace(ns)
             result = session.write_transaction(self._create_and_return_syntax, syntax, regex, ns)
             if result:
-                self.log.debug("Syntax creation was successful")
-            else:
-                self.log.debug("Syntax creation failed")
+                self.log.info("Syntax creation was successful")
+                return True
+        self.log.error("Syntax creation failed")
+        return False
 
     @staticmethod
     def _create_and_return_syntax(tx, syntax, regex, ns):
@@ -44,6 +48,36 @@ class Neo4JClient:
         )
         result = tx.run(query, ns=ns, syntax=syntax, regex=regex)
         result = [row["s"] for row in result]
+        if result:
+            return result[0]
+        return None
+
+    def create_namespace(self, ns: str):
+        parent_namespace = None
+        if ns and ':' in ns:
+            parent_namespace = ns[:ns.rindex(':')]
+            parent_ns = self.find_namespace(parent_namespace)
+            if not parent_ns:
+                self.create_namespace(parent_namespace)
+        with self.driver.session() as session:
+            return session.write_transaction(self._create_and_return_namespace, ns, parent_namespace)
+
+    @staticmethod
+    def _create_and_return_namespace(tx, ns: str, parent_ns: str = None):
+        if parent_ns:
+            query = (
+                "MATCH (n1:Namespace) WHERE n1.mrnNamespace = $ns1 "
+                "CREATE (n2:Namespace {mrnNamespace: $ns2}) "
+                "CREATE (n2)-[:EXTENDS]->(n1) "
+                "RETURN n2"
+            )
+        else:
+            query = (
+                "CREATE (n2:Namespace {mrnNamespace: $ns2}) "
+                "RETURN n2"
+            )
+        result = tx.run(query, ns1=parent_ns, ns2=ns)
+        result = [row["n2"] for row in result]
         if result:
             return result[0]
         return None

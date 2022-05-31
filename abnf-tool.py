@@ -6,12 +6,14 @@ from abnf import Rule
 from abnf.grammars.misc import load_grammar_rules
 from abnf_to_regexp.single_regexp import translate, represent
 from greenery import lego, fsm
+from neo4jclient import Neo4JClient
 from redis import Redis
 
 urn_abnf_path = "urn-abnf.txt"
 
 with open(urn_abnf_path, 'r') as f:
     s = f.read()
+    urn_abnf = s
     rulelist = s.splitlines()
     if rulelist[-1] == '':
         rulelist = rulelist[:-1]
@@ -31,6 +33,7 @@ mrn_abnf_path = "mrn-abnf.txt"
 
 with open(mrn_abnf_path, 'r') as f:
     s = f.read()
+    mrn_abnf = s
     rulelist = s.splitlines()
     if rulelist[-1] == '':
         rulelist = rulelist[:-1]
@@ -71,9 +74,10 @@ with open('mrn_lego.bin', 'wb') as f:
 
 
 r = Redis()
+n4j = Neo4JClient()
 
 
-def convert_and_save(lego_piece: lego.lego, path: str, name: str, regexp: str):
+def convert_and_save(lego_piece: lego.lego, path: str, name: str, regexp: str, abnf_syntax: str):
     print(f"Starting creation of {name}")
     _fsm: fsm.fsm = lego_piece.to_fsm().reduce()
     with open(path, 'wb') as file:
@@ -85,6 +89,7 @@ def convert_and_save(lego_piece: lego.lego, path: str, name: str, regexp: str):
     }
     p = pickle.dumps(t)
     r.set(name, p)
+    n4j.create_syntax(abnf_syntax, regexp, name)
     print(f"Finished {name}")
 
 
@@ -96,8 +101,8 @@ def convert_and_save(lego_piece: lego.lego, path: str, name: str, regexp: str):
     #     print("FSM is NOT the same after pickling", path)
 
 
-convert_and_save(urn_lego, 'urn_fsm.bin', 'urn', urn_re_str)
-convert_and_save(mrn_lego, 'mrn_fsm.bin', 'urn:mrn', mrn_re_str)
+convert_and_save(urn_lego, 'urn_fsm.bin', 'urn', urn_re_str, urn_abnf)
+convert_and_save(mrn_lego, 'mrn_fsm.bin', 'urn:mrn', mrn_re_str, mrn_abnf)
 # p1 = Process(target=convert_and_save, args=(urn_lego, 'urn_fsm.bin', 'urn',))
 # p2 = Process(target=convert_and_save, args=(mrn_lego, 'mrn_fsm.bin', 'urn:mrn',))
 # p1.start()
