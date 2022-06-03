@@ -42,7 +42,7 @@ class Neo4JClient:
     def _create_and_return_syntax(tx, syntax, regex, ns):
         query = (
             "MATCH (ns:Namespace) WHERE ns.mrnNamespace = $ns "
-            "CREATE (s:NamespaceSyntax {abnfSyntax: $syntax, regex: $regex}) "
+            "CREATE (s:NamespaceSyntax {abnfSyntax: $syntax, regex: $regex, mrnNamespace: $ns}) "
             "CREATE (s)-[:DESCRIBES]->(ns) "
             "RETURN s"
         )
