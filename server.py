@@ -33,12 +33,16 @@ async def handler(websocket):
             try:
                 regex = create_regex_from_abnf(abnf_syntax, namespace, extends_namespace)
                 response = {
+                    "code": "OK",
                     "namespace": namespace,
                     "regex": regex
                 }
-                await websocket.send(json.dumps(response))
             except (FileNotFoundError, ValueError) as e:
-                await websocket.send(str(e))
+                response = {
+                    "code": "ERROR",
+                    "message": str(e)
+                }
+            await websocket.send(json.dumps(response))
 
         elif function == "get":
             ns = message["namespace"]
@@ -47,7 +51,7 @@ async def handler(websocket):
             await websocket.send(json.dumps(d))
     except exceptions.ConnectionClosedOK:
         log.info("Connected client closed the connection")
-    except exceptions.ConnectionClosedError as e:
+    except exceptions.ConnectionClosedError:
         log.error("The connection to the client was terminated with an error")
 
 
