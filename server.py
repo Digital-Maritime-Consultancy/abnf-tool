@@ -28,7 +28,6 @@ async def handler(websocket):
         function = message["function"]
         if function == "create":
             abnf_syntax = message["abnf"]
-            print(abnf_syntax)
             namespace = message["namespace"]
             extends_namespace = message["extends_namespace"]
             try:
