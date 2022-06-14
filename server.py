@@ -28,6 +28,7 @@ async def handler(websocket):
         function = message["function"]
         if function == "create":
             abnf_syntax = message["abnf"]
+            print(abnf_syntax)
             namespace = message["namespace"]
             extends_namespace = message["extends_namespace"]
             try:
@@ -58,6 +59,9 @@ async def handler(websocket):
 def create_regex_from_abnf(abnf_syntax: str, namespace: str, extends_namespace: str):
     if not abnf_syntax or not namespace or not extends_namespace:
         raise FileNotFoundError("Mandatory arguments were not provided")
+
+    # Convert LF to CRLF
+    abnf_syntax = abnf_syntax.replace('\n', '\r\n')
 
     # Check that the provided syntax is actually a valid syntax
     try:
