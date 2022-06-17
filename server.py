@@ -80,7 +80,7 @@ def create_regex_from_abnf(abnf_syntax: str, namespace: str, extends_namespace: 
     rulelist = abnf_syntax.splitlines()
     if rulelist[-1] == '':
         rulelist = rulelist[:-1]
-    rulelist = [rule for rule in rulelist if (not re.match(r'^(\s)*;.*$', rule))]
+    rulelist = [rule for rule in rulelist if not re.match(r'^(\s)*;.*$', rule)]
 
     @load_grammar_rules()
     class NewRule(Rule):
