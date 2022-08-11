@@ -1,4 +1,4 @@
-abnf==1.2.0
+abnf==1.2.1
 abnf-to-regexp==1.1.1
 asttokens==2.0.5
 async-timeout==4.0.2
