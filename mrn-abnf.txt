@@ -1,4 +1,4 @@
-mrn = "urn:mrn:" oid ":" oss [rq-components] [ "#" f-component ]
+mrn = "urn" ":" "mrn" ":" oid ":" oss [rq-components] [ "#" f-component ]
 oid = (alphanum) 0*20((alphanum) / "-") (alphanum)
 oss = osnid ":" osns
 osnid = (alphanum) 0*20((alphanum) / "-") (alphanum)

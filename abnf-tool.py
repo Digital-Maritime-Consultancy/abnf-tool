@@ -3,6 +3,7 @@ import re
 
 from abnf import Rule
 from abnf.grammars.misc import load_grammar_rules
+from abnf.parser import ABNFGrammarRule, ParseError
 from abnf_to_regexp.single_regexp import translate, represent
 from greenery import lego, fsm
 from neo4jclient import Neo4JClient
@@ -10,10 +11,16 @@ from redis import Redis
 
 urn_abnf_path = "urn-abnf.txt"
 
-with open(urn_abnf_path, 'r') as f:
-    s = f.read()
-    urn_abnf = s
-    rulelist = s.splitlines()
+with open(urn_abnf_path, 'rt') as f:
+    s = f.read().splitlines()
+    urn_abnf = '\r\n'.join(s) + '\r\n'
+    try:
+        print("Checking if URN ABNF is valid")
+        ABNFGrammarRule('rulelist').parse_all(urn_abnf)
+    except ParseError as e:
+        print("URN ABNF could not be parsed", e)
+        exit(1)
+    rulelist = urn_abnf.splitlines()
     if rulelist[-1] == '':
         rulelist = rulelist[:-1]
 
@@ -30,10 +37,16 @@ urn_re = re.compile(urn_re_str)
 
 mrn_abnf_path = "mrn-abnf.txt"
 
-with open(mrn_abnf_path, 'r') as f:
-    s = f.read()
-    mrn_abnf = s
-    rulelist = s.splitlines()
+with open(mrn_abnf_path, 'rt') as f:
+    s = f.read().splitlines()
+    mrn_abnf = '\r\n'.join(s) + '\r\n'
+    try:
+        print("Checking if MRN ABNF is valid")
+        ABNFGrammarRule('rulelist').parse_all(mrn_abnf)
+    except ParseError as e:
+        print("MRN ABNF could not be parsed", e)
+        exit(1)
+    rulelist = mrn_abnf.splitlines()
     if rulelist[-1] == '':
         rulelist = rulelist[:-1]
 

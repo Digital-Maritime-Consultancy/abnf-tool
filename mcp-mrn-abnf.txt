@@ -1,4 +1,4 @@
-mcp-mrn = "urn:mrn:mcp:" mcp-type ":" ipid ":" ipss
+mcp-mrn = "urn" ":" "mrn" ": "mcp" ":" mcp-type ":" ipid ":" ipss
 mcp-type = "device" / "org" / "user" / "vessel" / "service"
 ipid = alphanum *20(alphanum / "-") alphanum
 ipss = pchar *(pchar / "/")
