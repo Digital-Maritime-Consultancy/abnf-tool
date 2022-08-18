@@ -60,8 +60,9 @@ def create_regex_from_abnf(abnf_syntax: str, namespace: str, extends_namespace: 
     if not abnf_syntax or not namespace or not extends_namespace:
         raise FileNotFoundError("Mandatory arguments were not provided")
 
-    # Convert LF to CRLF
-    abnf_syntax = abnf_syntax.replace('\n', '\r\n')
+    # Ensure that the syntax uses CRLF as line terminator
+    rulelist = abnf_syntax.splitlines()
+    abnf_syntax = '\r\n'.join(rulelist) + '\r\n'
 
     # Check that the provided syntax is actually a valid syntax
     try:
@@ -77,7 +78,6 @@ def create_regex_from_abnf(abnf_syntax: str, namespace: str, extends_namespace: 
     extended = pickle.loads(p)
     extended_fsm: fsm.fsm = extended["fsm"]
 
-    rulelist = abnf_syntax.splitlines()
     if rulelist[-1] == '':
         rulelist = rulelist[:-1]
     rulelist = [rule for rule in rulelist if not re.match(r'^(\s)*;.*$', rule)]
