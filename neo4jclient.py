@@ -1,3 +1,4 @@
+import json
 import logging
 
 from neo4j import GraphDatabase
@@ -9,7 +10,7 @@ class Neo4JClient:
         self.driver = GraphDatabase.driver(host, auth=(username, password))
         self.log = logging.getLogger(__name__)
 
-    def find_namespace(self, ns_str):
+    def find_namespace(self, ns_str: str):
         with self.driver.session() as session:
             return session.read_transaction(self._find_and_return_namespace, ns_str)
 
@@ -26,12 +27,13 @@ class Neo4JClient:
             return result[0]
         return None
 
-    def create_syntax(self, syntax, regex, ns):
+    def create_syntax(self, syntax, regex, ns, ns_owner: dict):
         with self.driver.session() as session:
             namespace = session.read_transaction(self._find_and_return_namespace, ns)
             if not namespace:
                 self.create_namespace(ns)
-            result = session.write_transaction(self._create_and_return_syntax, syntax, regex, ns)
+            ns_owner_json = json.dumps(ns_owner)
+            result = session.write_transaction(self._create_and_return_syntax, syntax, regex, ns, ns_owner_json)
             if result:
                 self.log.info("Syntax creation was successful")
                 return True
@@ -39,16 +41,16 @@ class Neo4JClient:
         return False
 
     @staticmethod
-    def _create_and_return_syntax(tx, syntax, regex, ns):
+    def _create_and_return_syntax(tx, syntax, regex, ns, ns_owner):
         query = (
             "MATCH (ns:Namespace) WHERE ns.mrnNamespace = $ns "
-            "CREATE (s:NamespaceSyntax {abnfSyntax: $syntax, regex: $regex, mrnNamespace: $ns}) "
+            "CREATE (s:NamespaceSyntax {abnfSyntax: $syntax, regex: $regex, mrnNamespace: $ns, namespaceOwner: $ns_owner}) "
             "CREATE (s)-[:DESCRIBES]->(ns) "
             "RETURN s"
         )
-        result = tx.run(query, ns=ns, syntax=syntax, regex=regex)
+        result = tx.run(query, ns=ns, syntax=syntax, regex=regex, ns_owner=ns_owner)
         result = [row["s"] for row in result]
-        if result:
+        if result and len(result) > 0:
             return result[0]
         return None
 

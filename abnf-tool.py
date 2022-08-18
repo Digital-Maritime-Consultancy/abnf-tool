@@ -78,7 +78,7 @@ r = Redis()
 n4j = Neo4JClient()
 
 
-def convert_and_save(lego_piece: lego.lego, path: str, name: str, regexp: str, abnf_syntax: str):
+def convert_and_save(lego_piece: lego.lego, path: str, name: str, regexp: str, abnf_syntax: str, ns_owner: dict):
     print(f"Starting creation of {name}")
     _fsm: fsm.fsm = lego_piece.to_fsm().reduce()
     with open(path, 'wb') as file:
@@ -86,13 +86,26 @@ def convert_and_save(lego_piece: lego.lego, path: str, name: str, regexp: str, a
     t = {
         "namespace": name,
         "regex": regexp,
-        "fsm": _fsm
+        "fsm": _fsm,
+        "ns_owner": ns_owner
     }
     p = pickle.dumps(t)
     r.set(name, p)
-    n4j.create_syntax(abnf_syntax, regexp, name)
+    n4j.create_syntax(abnf_syntax, regexp, name, ns_owner)
     print(f"Finished {name}")
 
 
-convert_and_save(urn_lego, 'urn_fsm.bin', 'urn', urn_re_str, urn_abnf)
-convert_and_save(mrn_lego, 'mrn_fsm.bin', 'urn:mrn', mrn_re_str, mrn_abnf)
+ietf_contact = {
+    "name": 'Internet Engineering Task Force',
+    "email": 'urn@ietf.org',
+    "url": 'https://www.ietf.org/'
+}
+convert_and_save(urn_lego, 'urn_fsm.bin', 'urn', urn_re_str, urn_abnf, ietf_contact)
+iala_contact = {
+    "name": 'International Association of Marine Aids to Navigation and Lighthouse Authorities',
+    "email": "tm@iala-aism.org",
+    "url": 'https://www.iala-aism.org/',
+    "address": '10 rue des Gaudines\n78100\nSt Germain en Laye',
+    "country": 'France'
+}
+convert_and_save(mrn_lego, 'mrn_fsm.bin', 'urn:mrn', mrn_re_str, mrn_abnf, iala_contact)
