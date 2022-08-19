@@ -31,8 +31,9 @@ async def handler(websocket):
             abnf_syntax = message["abnf"]
             namespace = message["namespace"]
             extends_namespace = message["extends_namespace"]
+            namespace_owner = message["namespace_owner"]
             try:
-                regex = create_regex_from_abnf(abnf_syntax, namespace, extends_namespace)
+                regex = create_regex_from_abnf(abnf_syntax, namespace, extends_namespace, namespace_owner)
                 response = {
                     "code": "OK",
                     "namespace": namespace,
@@ -54,15 +55,24 @@ async def handler(websocket):
         log.info("Connected client closed the connection")
     except exceptions.ConnectionClosedError:
         log.error("The connection to the client was terminated with an error")
+    except json.JSONDecodeError as e:
+        log.exception("The received message could not be decoded as valid JSON", e)
+        response = {
+            "code": "ERROR",
+            "message": str(e)
+        }
+        await websocket.send(json.dumps(response))
 
 
-def create_regex_from_abnf(abnf_syntax: str, namespace: str, extends_namespace: str):
-    if not abnf_syntax or not namespace or not extends_namespace:
+def create_regex_from_abnf(abnf_syntax: str, namespace: str, extends_namespace: str, namespace_owner: dict):
+    if not abnf_syntax or not namespace or not extends_namespace or not namespace_owner \
+            or not all(key in namespace_owner for key in ('name', 'email', 'phone', 'url', 'address', 'country')):
         raise FileNotFoundError("Mandatory arguments were not provided")
 
     # Ensure that the syntax uses CRLF as line terminator
     rulelist = abnf_syntax.splitlines()
     abnf_syntax = '\r\n'.join(rulelist) + '\r\n'
+    print(abnf_syntax)
 
     # Check that the provided syntax is actually a valid syntax
     try:
@@ -101,7 +111,7 @@ def create_regex_from_abnf(abnf_syntax: str, namespace: str, extends_namespace: 
     }
     p = pickle.dumps(new_dict)
     r.set(namespace, p)
-    n4j.create_syntax(abnf_syntax, new_regex_str, namespace)
+    n4j.create_syntax(abnf_syntax, new_regex_str, namespace, namespace_owner)
     return new_regex_str
 
 
