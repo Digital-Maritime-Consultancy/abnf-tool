@@ -98,12 +98,16 @@ def convert_and_save(lego_piece: lego.lego, path: str, name: str, regexp: str, a
 ietf_contact = {
     "name": 'Internet Engineering Task Force',
     "email": 'urn@ietf.org',
-    "url": 'https://www.ietf.org/'
+    "phone": '',
+    "url": 'https://www.ietf.org/',
+    "address": '',
+    "country": ''
 }
 convert_and_save(urn_lego, 'urn_fsm.bin', 'urn', urn_re_str, urn_abnf, ietf_contact)
 iala_contact = {
     "name": 'International Association of Marine Aids to Navigation and Lighthouse Authorities',
     "email": "tm@iala-aism.org",
+    "phone": '',
     "url": 'https://www.iala-aism.org/',
     "address": '10 rue des Gaudines\n78100\nSt Germain en Laye',
     "country": 'France'

@@ -32,8 +32,7 @@ class Neo4JClient:
             namespace = session.read_transaction(self._find_and_return_namespace, ns)
             if not namespace:
                 self.create_namespace(ns)
-            ns_owner_json = json.dumps(ns_owner)
-            result = session.write_transaction(self._create_and_return_syntax, syntax, regex, ns, ns_owner_json)
+            result = session.write_transaction(self._create_and_return_syntax, syntax, regex, ns, ns_owner)
             if result:
                 self.log.info("Syntax creation was successful")
                 return True
@@ -44,8 +43,10 @@ class Neo4JClient:
     def _create_and_return_syntax(tx, syntax, regex, ns, ns_owner):
         query = (
             "MATCH (ns:Namespace) WHERE ns.mrnNamespace = $ns "
-            "CREATE (s:NamespaceSyntax {abnfSyntax: $syntax, regex: $regex, mrnNamespace: $ns, namespaceOwner: $ns_owner}) "
+            "CREATE (s:NamespaceSyntax {abnfSyntax: $syntax, regex: $regex, mrnNamespace: $ns}) "
+            "CREATE (no:NamespaceOwner $ns_owner) "
             "CREATE (s)-[:DESCRIBES]->(ns) "
+            "CREATE (no)-[:OWNS]->(s) "
             "RETURN s"
         )
         result = tx.run(query, ns=ns, syntax=syntax, regex=regex, ns_owner=ns_owner)
