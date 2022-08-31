@@ -44,9 +44,9 @@ class Neo4JClient:
         query = (
             "MATCH (ns:Namespace) WHERE ns.mrnNamespace = $ns "
             "CREATE (s:NamespaceSyntax {abnfSyntax: $syntax, regex: $regex, mrnNamespace: $ns}) "
-            "CREATE (no:NamespaceOwner $ns_owner) "
+            "CREATE (no:Owner $ns_owner) "
             "CREATE (s)-[:DESCRIBES]->(ns) "
-            "CREATE (no)-[:OWNS]->(s) "
+            "CREATE (no)-[:OWNS_NAMESPACE]->(s) "
             "RETURN s"
         )
         result = tx.run(query, ns=ns, syntax=syntax, regex=regex, ns_owner=ns_owner)
