@@ -30,10 +30,10 @@ async def handler(websocket):
         if function == "create":
             abnf_syntax = message["abnf"]
             namespace = message["namespace"]
-            extends_namespace = message["extends_namespace"]
+            parent_namespace = message["parent_namespace"]
             namespace_owner = message["namespace_owner"]
             try:
-                regex = create_regex_from_abnf(abnf_syntax, namespace, extends_namespace, namespace_owner)
+                regex = await create_regex_from_abnf(abnf_syntax, namespace, parent_namespace, namespace_owner)
                 response = {
                     "code": "OK",
                     "namespace": namespace,
@@ -64,8 +64,8 @@ async def handler(websocket):
         await websocket.send(json.dumps(response))
 
 
-def create_regex_from_abnf(abnf_syntax: str, namespace: str, extends_namespace: str, namespace_owner: dict):
-    if not abnf_syntax or not namespace or not extends_namespace or not namespace_owner \
+async def create_regex_from_abnf(abnf_syntax: str, namespace: str, parent_namespace: str, namespace_owner: dict):
+    if not abnf_syntax or not namespace or not parent_namespace or not namespace_owner \
             or not all(key in namespace_owner for key in ('name', 'email', 'phone', 'url', 'address', 'country')):
         raise FileNotFoundError("Mandatory arguments were not provided")
 
@@ -82,9 +82,9 @@ def create_regex_from_abnf(abnf_syntax: str, namespace: str, extends_namespace: 
         log.exception(message, e)
         raise ValueError(message)
 
-    p = r.get(extends_namespace)
+    p = r.get(parent_namespace)
     if not p:
-        raise FileNotFoundError(f"A syntax definition was not found for {extends_namespace}")
+        raise FileNotFoundError(f"A syntax definition was not found for {parent_namespace}")
     extended = pickle.loads(p)
     extended_fsm: fsm.fsm = extended["fsm"]
 
@@ -103,14 +103,14 @@ def create_regex_from_abnf(abnf_syntax: str, namespace: str, extends_namespace: 
 
     is_subset = new_fsm < extended_fsm
     if not is_subset:
-        raise ValueError(f"{namespace} is not a subset of {extends_namespace}")
+        raise ValueError(f"{namespace} is not a subset of {parent_namespace}")
     new_dict = {
         "namespace": namespace,
         "regex": new_regex_str,
         "fsm": new_fsm
     }
     p = pickle.dumps(new_dict)
-    r.set(namespace, p)
+    await r.set(namespace, p)
     n4j.create_syntax(abnf_syntax, new_regex_str, namespace, namespace_owner)
     return new_regex_str
 
