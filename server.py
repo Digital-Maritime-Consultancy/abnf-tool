@@ -33,7 +33,7 @@ async def handler(websocket):
             parent_namespace = message["parent_namespace"]
             namespace_owner = message["namespace_owner"]
             try:
-                regex = await create_regex_from_abnf(abnf_syntax, namespace, parent_namespace, namespace_owner)
+                regex = create_regex_from_abnf(abnf_syntax, namespace, parent_namespace, namespace_owner)
                 response = {
                     "code": "OK",
                     "namespace": namespace,
@@ -64,7 +64,7 @@ async def handler(websocket):
         await websocket.send(json.dumps(response))
 
 
-async def create_regex_from_abnf(abnf_syntax: str, namespace: str, parent_namespace: str, namespace_owner: dict):
+def create_regex_from_abnf(abnf_syntax: str, namespace: str, parent_namespace: str, namespace_owner: dict):
     if not abnf_syntax or not namespace or not parent_namespace or not namespace_owner \
             or not all(key in namespace_owner for key in ('name', 'email', 'phone', 'url', 'address', 'country')):
         raise FileNotFoundError("Mandatory arguments were not provided")
@@ -110,7 +110,7 @@ async def create_regex_from_abnf(abnf_syntax: str, namespace: str, parent_namesp
         "fsm": new_fsm
     }
     p = pickle.dumps(new_dict)
-    await r.set(namespace, p)
+    r.set(namespace, p)
     n4j.create_syntax(abnf_syntax, new_regex_str, namespace, namespace_owner)
     return new_regex_str
 
