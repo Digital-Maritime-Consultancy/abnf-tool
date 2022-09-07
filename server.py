@@ -45,12 +45,14 @@ async def handler(websocket):
                     "message": str(e)
                 }
             await websocket.send(json.dumps(response))
+            await websocket.close()
 
         elif function == "get":
             ns = message["namespace"]
             d: dict = pickle.loads(r.get(ns))
             d.pop("fsm")
             await websocket.send(json.dumps(d))
+            await websocket.close()
     except exceptions.ConnectionClosedOK:
         log.info("Connected client closed the connection")
     except exceptions.ConnectionClosedError:
