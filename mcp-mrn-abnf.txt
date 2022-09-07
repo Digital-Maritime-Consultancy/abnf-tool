@@ -1,9 +1,1 @@
-mcp-mrn = "urn" ":" "mrn" ":" "mcp" ":" mcp-type ":" ipid ":" ipss
-mcp-type = "device" / "org" / "user" / "vessel" / "service"
-ipid = alphanum *20(alphanum / "-") alphanum
-ipss = pchar *(pchar / "/")
-alphanum = ALPHA / DIGIT
-pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
-unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
-pct-encoded = "%" HEXDIG HEXDIG
-sub-delims = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+mcp-mrn = \"urn\" \":\" \"mrn\" \":\" \"mcp\" \":\" mcp-type \":\" ipid \":\" ipss\r\nmcp-type = \"device\" / \"org\" / \"user\" / \"vessel\" / \"service\"\r\nipid = alphanum *20(alphanum / \"-\") alphanum\r\nipss = pchar *(pchar / \"/\")\r\nalphanum = ALPHA / DIGIT\r\npchar = unreserved / pct-encoded / sub-delims / \":\" / \"@\"\r\nunreserved = ALPHA / DIGIT / \"-\" / \".\" / \"_\" / \"~\"\r\npct-encoded = \"%\" HEXDIG HEXDIG\r\nsub-delims = \"!\" / \"$\" / \"&\" / \"'\" / \"(\" / \")\" / \"*\" / \"+\" / \",\" / \";\" / \"=\"\r\n

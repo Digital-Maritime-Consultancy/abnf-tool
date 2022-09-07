@@ -67,22 +67,13 @@ print(mrn_re_str)
 urn_lego: lego.lego = parse_regex(urn_re_str)
 mrn_lego: lego.lego = parse_regex(mrn_re_str)
 
-with open('urn_lego.bin', 'wb') as f:
-    pickle.dump(urn_lego, f)
-
-with open('mrn_lego.bin', 'wb') as f:
-    pickle.dump(mrn_lego, f)
-
-
 r = Redis()
 n4j = Neo4JClient()
 
 
-def convert_and_save(lego_piece: lego.lego, path: str, name: str, regexp: str, abnf_syntax: str, ns_owner: dict):
+def convert_and_save(lego_piece: lego.lego, name: str, regexp: str, abnf_syntax: str, ns_owner: dict):
     print(f"Starting creation of {name}")
     _fsm: fsm.fsm = lego_piece.to_fsm().reduce()
-    with open(path, 'wb') as file:
-        pickle.dump(_fsm, file)
     t = {
         "namespace": name,
         "regex": regexp,
@@ -103,7 +94,7 @@ ietf_contact = {
     "address": '',
     "country": ''
 }
-convert_and_save(urn_lego, 'urn_fsm.bin', 'urn', urn_re_str, urn_abnf, ietf_contact)
+convert_and_save(urn_lego, 'urn', urn_re_str, urn_abnf, ietf_contact)
 iala_contact = {
     "name": 'International Association of Marine Aids to Navigation and Lighthouse Authorities',
     "email": "tm@iala-aism.org",
@@ -112,4 +103,4 @@ iala_contact = {
     "address": '10 rue des Gaudines\n78100\nSt Germain en Laye',
     "country": 'France'
 }
-convert_and_save(mrn_lego, 'mrn_fsm.bin', 'urn:mrn', mrn_re_str, mrn_abnf, iala_contact)
+convert_and_save(mrn_lego, 'urn:mrn', mrn_re_str, mrn_abnf, iala_contact)
