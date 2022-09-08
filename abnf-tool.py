@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
+import argparse
 import pickle
 import re
 
@@ -22,6 +22,35 @@ from abnf_to_regexp.single_regexp import translate, represent
 from greenery import lego, fsm
 from neo4jclient import Neo4JClient
 from redis import Redis
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--redis_host", help="The host address of the Redis DB")
+parser.add_argument("--redis_port", help="The port of the Redis DB")
+parser.add_argument("--redis_db", help="The DB to use in Redis")
+parser.add_argument("--redis_password", help="The password for Redis")
+parser.add_argument("--neo4j_uri", help="The host URI for the Neo4J DB")
+parser.add_argument("--neo4j_user", help="The username for Neo4J")
+parser.add_argument("--neo4j_password", help="The password for Neo4J")
+
+args = parser.parse_args()
+
+redis_args = {}
+if args.redis_host:
+    redis_args["host"] = args.redis_host
+if args.redis_port:
+    redis_args["port"] = args.redis_port
+if args.redis_db:
+    redis_args["db"] = args.redis_db
+if args.redis_password:
+    redis_args["password"] = args.redis_password
+
+n4j_args = {}
+if args.neo4j_uri:
+    n4j_args["host"] = args.neo4j_uri
+if args.neo4j_user:
+    n4j_args["username"] = args.neo4j_user
+if args.neo4j_password:
+    n4j_args["password"] = args.neo4j_password
 
 urn_abnf_path = "urn-abnf.txt"
 
@@ -81,8 +110,8 @@ print(mrn_re_str)
 urn_lego: lego.lego = parse_regex(urn_re_str)
 mrn_lego: lego.lego = parse_regex(mrn_re_str)
 
-r = Redis()
-n4j = Neo4JClient()
+r = Redis(**redis_args)
+n4j = Neo4JClient(**n4j_args)
 
 
 def convert_and_save(lego_piece: lego.lego, name: str, regexp: str, abnf_syntax: str, ns_owner: dict):
