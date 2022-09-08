@@ -30,10 +30,6 @@ from websockets import exceptions
 
 from neo4jclient import Neo4JClient
 
-log = logging.getLogger("ABNF Server")
-r = Redis()
-n4j = Neo4JClient()
-
 
 async def handler(websocket):
     try:
@@ -139,6 +135,9 @@ async def main():
 
 
 if __name__ == "__main__":
+    log = logging.getLogger("ABNF Server")
+    r = Redis()
+    n4j = Neo4JClient()
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
