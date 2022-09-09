@@ -18,6 +18,7 @@ import logging
 import os
 import pickle
 import re
+import signal
 
 import websockets
 from abnf import Rule
@@ -169,7 +170,14 @@ def initialize_databases():
     return redis, neo4j
 
 
+def sig_handler(signum, frame):
+    if signum == signal.SIGTERM:
+        print("Received SIGTERM")
+        raise KeyboardInterrupt()
+
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGTERM, sig_handler)
     r, n4j = initialize_databases()
     log = logging.getLogger("ABNF Server")
     try:
