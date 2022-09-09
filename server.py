@@ -85,7 +85,6 @@ def create_regex_from_abnf(abnf_syntax: str, namespace: str, parent_namespace: s
     # Ensure that the syntax uses CRLF as line terminator
     rulelist = abnf_syntax.splitlines()
     abnf_syntax = '\r\n'.join(rulelist) + '\r\n'
-    print(abnf_syntax)
 
     # Check that the provided syntax is actually a valid syntax
     try:
@@ -172,7 +171,7 @@ def initialize_databases():
 
 def sig_handler(signum, frame):
     if signum == signal.SIGTERM:
-        print("Received SIGTERM")
+        log.info("Received SIGTERM")
         raise KeyboardInterrupt()
 
 
