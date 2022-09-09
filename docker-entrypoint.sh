@@ -20,8 +20,7 @@ MODE="$1"
 if [[ $MODE == "server" ]]; then
   exec python3 server.py
 elif [[ $MODE == "bootstrap" ]]; then
-  echo "It was bootstrap"
-  exec python3 abnf-tool.py
+  exec python3 -u abnf-tool.py "${@:2}"
 else
   exec "$@"
 fi
