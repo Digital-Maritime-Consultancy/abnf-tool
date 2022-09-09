@@ -1,0 +1,7 @@
+.idea
+.venv
+.gitattributes
+.gitignore
+Dockerfile
+LICENSE
+*.bin
