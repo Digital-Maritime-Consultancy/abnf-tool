@@ -1,5 +1,7 @@
 FROM python:3.10
 
+LABEL org.opencontainers.image.source="https://github.com/Digital-Maritime-Consultancy/abnf-tool"
+
 WORKDIR /usr/src/app
 
 RUN useradd -m worker
