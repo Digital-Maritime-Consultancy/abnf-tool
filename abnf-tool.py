@@ -12,6 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import argparse
+import logging
+import os
 import pickle
 
 from abnf import Rule
@@ -60,11 +62,12 @@ def main():
         s = f.read().splitlines()
         urn_abnf = '\r\n'.join(s) + '\r\n'
         try:
-            print("Checking if URN ABNF is valid")
+            log.info("Checking if URN ABNF is valid")
             ABNFGrammarRule('rulelist').parse_all(urn_abnf)
         except ParseError as e:
-            print("URN ABNF could not be parsed", e)
+            log.exception("URN ABNF could not be parsed", exc_info=e)
             exit(1)
+        log.info("URN ABNF is valid")
         rulelist = urn_abnf.splitlines()
         if rulelist[-1] == '':
             rulelist = rulelist[:-1]
@@ -75,7 +78,7 @@ def main():
 
     regex = translate(Urn('namestring'))
     urn_re_str = represent(regex).replace('\#', '#')
-    print(urn_re_str)
+    log.debug(urn_re_str)
 
     mrn_abnf_path = "mrn-abnf.txt"
 
@@ -83,11 +86,12 @@ def main():
         s = f.read().splitlines()
         mrn_abnf = '\r\n'.join(s) + '\r\n'
         try:
-            print("Checking if MRN ABNF is valid")
+            log.info("Checking if MRN ABNF is valid")
             ABNFGrammarRule('rulelist').parse_all(mrn_abnf)
         except ParseError as e:
-            print("MRN ABNF could not be parsed", e)
+            log.exception("MRN ABNF could not be parsed", exc_info=e)
             exit(1)
+        log.info("MRN ABNF is valid")
         rulelist = mrn_abnf.splitlines()
         if rulelist[-1] == '':
             rulelist = rulelist[:-1]
@@ -101,7 +105,7 @@ def main():
 
     regex = translate(Mrn('mrn'))
     mrn_re_str = represent(regex).replace('\#', '#')
-    print(mrn_re_str)
+    log.debug(mrn_re_str)
 
     urn_lego: lego.lego = parse_regex(urn_re_str)
     mrn_lego: lego.lego = parse_regex(mrn_re_str)
@@ -110,7 +114,7 @@ def main():
     n4j = Neo4JClient(**n4j_args)
 
     def convert_and_save(lego_piece: lego.lego, name: str, regexp: str, abnf_syntax: str, ns_owner: dict):
-        print(f"Starting creation of {name}")
+        log.info(f"Starting creation of {name}")
         _fsm: fsm.fsm = lego_piece.to_fsm().reduce()
         t = {
             "namespace": name,
@@ -121,7 +125,7 @@ def main():
         p = pickle.dumps(t)
         r.set(name, p)
         n4j.create_syntax(abnf_syntax, regexp, name, ns_owner)
-        print(f"Finished {name}")
+        log.info(f"Finished creation of {name}")
 
     ietf_contact = {
         "name": 'Internet Engineering Task Force',
@@ -144,4 +148,6 @@ def main():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+    log = logging.getLogger("Bootstrap")
     main()
