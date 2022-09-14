@@ -18,6 +18,7 @@ import pickle
 
 from abnf import Rule
 from abnf.grammars.misc import load_grammar_rules
+from abnf.grammars.rfc3986 import Rule as Uri
 from abnf.parser import ABNFGrammarRule, ParseError
 from abnf_to_regexp.single_regexp import translate, represent
 from greenery import lego, fsm
@@ -71,8 +72,17 @@ def main():
         rulelist = urn_abnf.splitlines()
         if rulelist[-1] == '':
             rulelist = rulelist[:-1]
+        rulelist.append("alphanum = ALPHA / DIGIT")
 
-    @load_grammar_rules()
+    @load_grammar_rules(
+        [
+            ('pchar', Uri('pchar')),
+            ('unreserved', Uri('unreserved')),
+            ('pct-encoded', Uri('pct-encoded')),
+            ('sub-delims', Uri('sub-delims')),
+            ('fragment', Uri('sub-delims'))
+        ]
+    )
     class Urn(Rule):
         grammar = rulelist
 
@@ -95,11 +105,18 @@ def main():
         rulelist = mrn_abnf.splitlines()
         if rulelist[-1] == '':
             rulelist = rulelist[:-1]
+        rulelist.append("alphanum = ALPHA / DIGIT")
 
     def parse_regex(regexp):
         return lego.parse(regexp).reduce()
 
-    @load_grammar_rules()
+    @load_grammar_rules(
+        [
+            ('pchar', Uri('pchar')),
+            ('rq-components', Urn('rq-components')),
+            ('f-component', Urn('f-component'))
+        ]
+    )
     class Mrn(Rule):
         grammar = rulelist
 
