@@ -1,5 +1,5 @@
 mcp-mrn = "urn" ":" "mrn" ":" "mcp" ":" mcp-type ":" ipid ":" ipss
-mcp-type = "device" / "org" / "user" / "vessel" / "service"
+mcp-type = "device" / "org" / "user" / "vessel" / "service" / "mir" / "mms" / "msr"
 ipid = alphanum *20(alphanum / "-") alphanum
 ipss = pchar *(pchar / "/")
 alphanum = ALPHA / DIGIT
