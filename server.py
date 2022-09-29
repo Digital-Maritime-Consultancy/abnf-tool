@@ -82,6 +82,10 @@ def create_regex_from_abnf(abnf_syntax: str, namespace: str, parent_namespace: s
             or not all(key in namespace_owner for key in ('name', 'email', 'phone', 'url', 'address', 'country')):
         raise FileNotFoundError("Mandatory arguments were not provided")
 
+    s = r.get(namespace)
+    if s:
+        raise ValueError(f"A syntax definition already exists for the namespace {namespace}")
+
     # Ensure that the syntax uses CRLF as line terminator
     rulelist = abnf_syntax.splitlines()
     abnf_syntax = '\r\n'.join(rulelist) + '\r\n'
