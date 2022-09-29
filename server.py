@@ -37,8 +37,8 @@ async def handler(websocket):
         log.info("Incoming connection")
         message_json = await websocket.recv()
         message = json.loads(message_json)
-        function = message["function"]
-        if function == "create":
+        func = message["function"]
+        if func == "create":
             abnf_syntax = message["abnf"]
             namespace = message["namespace"]
             parent_namespace = message["parent_namespace"]
@@ -58,7 +58,7 @@ async def handler(websocket):
             await websocket.send(json.dumps(response))
             await websocket.close()
 
-        elif function == "get":
+        elif func == "get":
             ns = message["namespace"]
             d: dict = pickle.loads(r.get(ns))
             d.pop("fsm")
