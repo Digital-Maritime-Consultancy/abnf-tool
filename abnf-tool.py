@@ -16,15 +16,14 @@ import logging
 import os
 import pickle
 
-from abnf import Rule
-from abnf.grammars.misc import load_grammar_rules
-from abnf.grammars.rfc3986 import Rule as Uri
-from abnf.parser import ABNFGrammarRule, ParseError
 from abnf_to_regexp.single_regexp import translate, represent
-from greenery import lego, fsm
+from greenery import parse
+from greenery.fsm import Fsm
 from redis import Redis
 
+from mrn import Mrn
 from neo4jclient import Neo4JClient
+from urn import Urn
 
 
 def main():
@@ -57,86 +56,33 @@ def main():
     if args.neo4j_password:
         n4j_args["password"] = args.neo4j_password
 
-    urn_abnf_path = "urn-abnf.txt"
-
-    with open(urn_abnf_path, 'rt') as f:
-        s = f.read().splitlines()
-        urn_abnf = '\r\n'.join(s) + '\r\n'
-        try:
-            log.info("Checking if URN ABNF is valid")
-            ABNFGrammarRule('rulelist').parse_all(urn_abnf)
-        except ParseError as e:
-            log.exception("URN ABNF could not be parsed", exc_info=e)
-            exit(1)
-        log.info("URN ABNF is valid")
-        rulelist = urn_abnf.splitlines()
-        if rulelist[-1] == '':
-            rulelist = rulelist[:-1]
-        rulelist.append("alphanum = ALPHA / DIGIT")
-
-    @load_grammar_rules(
-        [
-            ('pchar', Uri('pchar')),
-            ('unreserved', Uri('unreserved')),
-            ('pct-encoded', Uri('pct-encoded')),
-            ('sub-delims', Uri('sub-delims')),
-            ('fragment', Uri('sub-delims'))
-        ]
-    )
-    class Urn(Rule):
-        grammar = rulelist
-
     regex = translate(Urn('namestring'))
-    urn_re_str = represent(regex).replace('\#', '#')
-    log.debug(urn_re_str)
-
-    mrn_abnf_path = "mrn-abnf.txt"
-
-    with open(mrn_abnf_path, 'rt') as f:
-        s = f.read().splitlines()
-        mrn_abnf = '\r\n'.join(s) + '\r\n'
-        try:
-            log.info("Checking if MRN ABNF is valid")
-            ABNFGrammarRule('rulelist').parse_all(mrn_abnf)
-        except ParseError as e:
-            log.exception("MRN ABNF could not be parsed", exc_info=e)
-            exit(1)
-        log.info("MRN ABNF is valid")
-        rulelist = mrn_abnf.splitlines()
-        if rulelist[-1] == '':
-            rulelist = rulelist[:-1]
-        rulelist.append("alphanum = ALPHA / DIGIT")
+    urn_re_str = represent(regex).replace('\\#', '#')
 
     def parse_regex(regexp):
-        return lego.parse(regexp).reduce()
-
-    @load_grammar_rules(
-        [
-            ('pchar', Uri('pchar')),
-            ('rq-components', Urn('rq-components')),
-            ('f-component', Urn('f-component'))
-        ]
-    )
-    class Mrn(Rule):
-        grammar = rulelist
+        return parse(regexp).reduce().to_fsm()
 
     regex = translate(Mrn('mrn'))
-    mrn_re_str = represent(regex).replace('\#', '#')
-    log.debug(mrn_re_str)
+    mrn_re_str = represent(regex).replace('\\#', '#')
 
-    urn_lego: lego.lego = parse_regex(urn_re_str)
-    mrn_lego: lego.lego = parse_regex(mrn_re_str)
+    log.info("Parsing URN")
+    urn_fsm: Fsm = parse_regex(urn_re_str)
+    log.info("Parsing MRN")
+    mrn_fsm: Fsm = parse_regex(mrn_re_str)
+
+    log.info("Checking if MRN is a subset of URN")
+    if urn_fsm > mrn_fsm:
+        log.info("MRN is a subset of URN")
 
     r = Redis(**redis_args)
     n4j = Neo4JClient(**n4j_args)
 
-    def convert_and_save(lego_piece: lego.lego, name: str, regexp: str, abnf_syntax: str, ns_owner: dict):
+    def convert_and_save(fsm: Fsm, name: str, regexp: str, abnf_syntax: str, ns_owner: dict):
         log.info(f"Starting creation of {name}")
-        _fsm: fsm.fsm = lego_piece.to_fsm().reduce()
         t = {
             "namespace": name,
             "regex": regexp,
-            "fsm": _fsm,
+            "fsm": fsm,
             "ns_owner": ns_owner
         }
         p = pickle.dumps(t)
@@ -152,7 +98,8 @@ def main():
         "address": '',
         "country": ''
     }
-    convert_and_save(urn_lego, 'urn', urn_re_str, urn_abnf, ietf_contact)
+    convert_and_save(urn_fsm, 'urn', urn_re_str, "\r\n".join(Urn.grammar), ietf_contact)
+
     iala_contact = {
         "name": 'International Association of Marine Aids to Navigation and Lighthouse Authorities',
         "email": "tm@iala-aism.org",
@@ -161,7 +108,7 @@ def main():
         "address": '10 rue des Gaudines\n78100\nSt Germain en Laye',
         "country": 'France'
     }
-    convert_and_save(mrn_lego, 'urn:mrn', mrn_re_str, mrn_abnf, iala_contact)
+    convert_and_save(mrn_fsm, 'urn:mrn', mrn_re_str, "\r\n".join(Mrn.grammar), iala_contact)
 
 
 if __name__ == '__main__':
