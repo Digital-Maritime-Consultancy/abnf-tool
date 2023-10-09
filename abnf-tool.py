@@ -98,7 +98,7 @@ def main():
         "address": '',
         "country": ''
     }
-    convert_and_save(urn_fsm, 'urn', urn_re_str, "\r\n".join(Urn.grammar), ietf_contact)
+    convert_and_save(urn_fsm, 'urn', urn_re_str, "\r\n".join(Urn.grammar) + "\r\n", ietf_contact)
 
     iala_contact = {
         "name": 'International Association of Marine Aids to Navigation and Lighthouse Authorities',
@@ -108,7 +108,7 @@ def main():
         "address": '10 rue des Gaudines\n78100\nSt Germain en Laye',
         "country": 'France'
     }
-    convert_and_save(mrn_fsm, 'urn:mrn', mrn_re_str, "\r\n".join(Mrn.grammar), iala_contact)
+    convert_and_save(mrn_fsm, 'urn:mrn', mrn_re_str, "\r\n".join(Mrn.grammar) + "\r\n", iala_contact)
 
 
 if __name__ == '__main__':
