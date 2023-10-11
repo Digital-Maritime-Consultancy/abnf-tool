@@ -4,13 +4,13 @@ asttokens==2.4.0
 async-timeout==4.0.3
 Deprecated==1.2.14
 greenery==4.1.0
-icontract==2.6.3
+icontract==2.6.4
 neo4j==5.13.0
 packaging==23.2
 pyparsing==3.1.1
 pytz==2023.3.post1
 redis==5.0.1
-regex==2023.10.3
+regex==2021.4.4
 six==1.16.0
 sortedcontainers==2.4.0
 typing_extensions==4.8.0
