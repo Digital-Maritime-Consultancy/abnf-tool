@@ -70,10 +70,6 @@ def main():
     log.info("Parsing MRN")
     mrn_fsm: Fsm = parse_regex(mrn_re_str)
 
-    log.info("Checking if MRN is a subset of URN")
-    if urn_fsm > mrn_fsm:
-        log.info("MRN is a subset of URN")
-
     r = Redis(**redis_args)
     n4j = Neo4JClient(**n4j_args)
 
