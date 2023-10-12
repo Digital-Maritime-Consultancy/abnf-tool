@@ -110,12 +110,16 @@ def create_regex_from_abnf(abnf_syntax: str, namespace: str, parent_namespace: s
         rulelist = rulelist[:-1]
     rulelist = [rule for rule in rulelist if not re.match(r'^(\s)*;.*$', rule)]
 
-    @load_grammar_rules(
-        # import base rules from MRN
-        [(rule.name, rule) for rule in Mrn.rules()]
-    )
-    class NewRule(Rule):
-        grammar = rulelist
+    try:
+        @load_grammar_rules(
+            # import base rules from MRN
+            [(rule.name, rule) for rule in Mrn.rules()]
+        )
+        class NewRule(Rule):
+            grammar = rulelist
+
+    except ParseError:
+        raise ValueError("Was not able to parse the provided ABNF syntax")
 
     new_regex = translate(NewRule)
     new_regex_str = represent(new_regex).replace('\\#', '#')
