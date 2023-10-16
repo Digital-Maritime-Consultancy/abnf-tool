@@ -15,6 +15,7 @@
 import logging
 
 from neo4j import GraphDatabase
+import uuid
 
 
 class Neo4JClient:
@@ -54,15 +55,17 @@ class Neo4JClient:
 
     @staticmethod
     def _create_and_return_syntax(tx, syntax, regex, ns, ns_owner):
+        uid_syntax = str(uuid.uuid4())
         query = (
             "MATCH (ns:Namespace) WHERE ns.mrnNamespace = $ns "
-            "CREATE (s:NamespaceSyntax {abnfSyntax: $syntax, regex: $regex, mrnNamespace: $ns}) "
+            "CREATE (s:NamespaceSyntax {abnfSyntax: $syntax, regex: $regex, mrnNamespace: $ns, id: $uid_syntax}) "
             "CREATE (no:Owner $ns_owner) "
             "CREATE (s)-[:DESCRIBES]->(ns) "
             "CREATE (no)-[:OWNS_NAMESPACE]->(s) "
             "RETURN s"
         )
-        result = tx.run(query, ns=ns, syntax=syntax, regex=regex, ns_owner=ns_owner)
+        ns_owner["id"] = str(uuid.uuid4())
+        result = tx.run(query, ns=ns, syntax=syntax, regex=regex, ns_owner=ns_owner, uid_syntax=uid_syntax)
         result = [row["s"] for row in result]
         if result and len(result) > 0:
             return result[0]
@@ -80,19 +83,20 @@ class Neo4JClient:
 
     @staticmethod
     def _create_and_return_namespace(tx, ns: str, parent_ns: str = None):
+        uid = str(uuid.uuid4())
         if parent_ns:
             query = (
                 "MATCH (n1:Namespace) WHERE n1.mrnNamespace = $ns1 "
-                "CREATE (n2:Namespace {mrnNamespace: $ns2}) "
+                "CREATE (n2:Namespace {mrnNamespace: $ns2, id: $uid}) "
                 "CREATE (n2)-[:EXTENDS]->(n1) "
                 "RETURN n2"
             )
         else:
             query = (
-                "CREATE (n2:Namespace {mrnNamespace: $ns2}) "
+                "CREATE (n2:Namespace {mrnNamespace: $ns2, id: $uid}) "
                 "RETURN n2"
             )
-        result = tx.run(query, ns1=parent_ns, ns2=ns)
+        result = tx.run(query, ns1=parent_ns, ns2=ns, uid=uid)
         result = [row["n2"] for row in result]
         if result:
             return result[0]
